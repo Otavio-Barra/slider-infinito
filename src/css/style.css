@@ -1,0 +1,137 @@
+*,*::before,*::after{
+  margin: 0;
+  padding: 0;
+  border: 0;
+  box-sizing: border-box;
+}
+body,html{
+  height: 100%;
+}
+body{
+  background-color:#1f2029 ;
+}
+
+.wrapper{
+  display: flex;
+  align-items: center;
+  height: 100%;
+
+}
+
+.slide-wrapper{
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  overflow: hidden;
+  width: 100%;
+}
+
+/* trabalhar primeiro com a lista para facilitar */
+.slide-list{
+  display: flex;
+}
+
+.slide-item{
+  width: 90vw;
+  flex-shrink: 0;
+  padding: 10px;
+}
+/* o intuito do content e colocar essa borda envolta da img, coisa que no slide-item nao daria por causa do padding */
+.slide-content{
+  border: 1px solid #fff;
+  position: relative;
+  border-radius: 10px;
+box-shadow: #070707 0px 12px 12px;
+}
+/* imagem vai cupar 100% do pai que nesse caso e 90vw */
+.slide-image{
+  width: 100%;
+  border-radius: 10px;
+}
+
+.slide-description{
+  background: linear-gradient(to top, #000,transparent);
+  position: absolute;
+  bottom: 0;
+  padding: 30px;
+  width: 100%;
+  color: #fff;
+  border-radius: 10px;
+
+}
+
+.titulo{
+  font-family: "Koulen",sans-serif;
+  font-size: 48px;
+  position: relative;
+  top: 16px;
+}
+.description{
+  font-family:"PT Sans",sans-serif ;
+  font-size: 28px;
+}
+
+.slide-nav-button{
+  color: #fff;
+  background:transparent;
+  font-size: 36px;
+  position: absolute;
+  z-index: 1;
+}
+
+.slide-nav-previus{
+  left: 20px;
+}
+
+.slide-nav-next{
+  right: 20px;
+}
+
+.slide-controls{
+  margin: 30px auto 0;
+}
+
+.slide-control-button{
+  background: transparent;
+  color:#fff;
+  font-size: 18px;
+  margin: 0 3px;
+  cursor: pointer;
+}
+
+.slide-control-button.active{
+  color: #1f2029;
+}
+
+@media screen and (max-width: 768px) {
+
+  .slide-description{
+    padding: 0;
+  }
+  .titulo{
+    font-size: 24px;
+    top: 0 ;
+  }
+  .description{
+    display: none;
+  
+  }
+  .slide-nav-button{
+    margin-top: -20px;
+    font-size:28px ;
+  }
+  .slide-nav-previus{
+    left: 10px;
+  }
+  .slide-nav-next{
+    right: 10px;
+  }
+  .slide-controls{
+    margin: 15px auto 0;
+  }
+  .slide-control-button{
+    font-size: 14px;
+  }
+
+  
+}
