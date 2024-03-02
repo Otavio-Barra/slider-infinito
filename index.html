@@ -15,24 +15,27 @@
       rel="stylesheet"
     />
     <link rel="stylesheet" href="./src/css/style.css" />
+    <script src="./src/js/slides.js" defer></script>
     <title>Slide Games</title>
   </head>
   <body>
     <!-- div que vai englobar tudo -->
     <div class="wrapper">
       <!-- vai cobri todo o slide -->
-      <div class="slide-wrapper">
+      <div class="slide-wrapper" data-slide="wrapper">
         <!-- e bom colocar os botoes para o lado de fora da lista para separar eles  -->
         <button
           class="slide-nav-button slide-nav-previus fa-solid fa-chevron-left"
+          data-slide="nav-previous-button"
         ></button>
         <button
           class="slide-nav-button slide-nav-next fa-solid fa-chevron-right"
+          data-slide="nav-next-button"
         ></button>
         <!-- cada item do item do slide ou a lista do slide vai ficar aqui dentro -->
-        <div class="slide-list">
+        <div class="slide-list" data-slide="list">
           <!-- em cada slide-item vai ficar o conteudo do slide -->
-          <div class="slide-item">
+          <div class="slide-item" data-slide="item" data-index="0">
             <!-- conteudo de todo slide -->
             <div class="slide-content">
               <img
@@ -49,7 +52,7 @@
             </div>
           </div>
 
-          <div class="slide-item">
+          <div class="slide-item" data-slide="item" data-index="1">
             <!-- conteudo de todo slide -->
             <div class="slide-content">
               <img
@@ -66,7 +69,7 @@
             </div>
           </div>
 
-          <div class="slide-item">
+          <div class="slide-item" data-slide="item" data-index="2">
             <!-- conteudo de todo slide -->
             <div class="slide-content">
               <img
@@ -83,7 +86,7 @@
             </div>
           </div>
 
-          <div class="slide-item">
+          <div class="slide-item" data-slide="item" data-index="3">
             <!-- conteudo de todo slide -->
             <div class="slide-content">
               <img class="slide-image" src="./src/imgs/gta-v.png" alt="gta V" />
@@ -96,7 +99,7 @@
             </div>
           </div>
 
-          <div class="slide-item">
+          <div class="slide-item" data-slide="item" data-index="4">
             <!-- conteudo de todo slide -->
             <div class="slide-content">
               <img
@@ -113,7 +116,7 @@
             </div>
           </div>
 
-          <div class="slide-item">
+          <div class="slide-item" data-slide="item" data-index="5">
             <!-- conteudo de todo slide -->
             <div class="slide-content">
               <img
@@ -130,7 +133,7 @@
             </div>
           </div>
 
-          <div class="slide-item">
+          <div class="slide-item" data-slide="item" data-index="6">
             <!-- conteudo de todo slide -->
             <div class="slide-content">
               <img
@@ -147,7 +150,7 @@
             </div>
           </div>
 
-          <div class="slide-item">
+          <div class="slide-item" data-slide="item" data-index="7">
             <!-- conteudo de todo slide -->
             <div class="slide-content">
               <img class="slide-image" src="./src/imgs/zelda.png" alt="zelda" />
@@ -160,18 +163,39 @@
             </div>
           </div>
         </div>
-        <div class="slide-controls">
+        <div class="slide-controls" data-slide="controls-wrapper">
           <button
             class="slide-control-button fa-solid fa-circle"
             active
           ></button>
-          <button class="slide-control-button fa-solid fa-circle"></button>
-          <button class="slide-control-button fa-solid fa-circle"></button>
-          <button class="slide-control-button fa-solid fa-circle"></button>
-          <button class="slide-control-button fa-solid fa-circle"></button>
-          <button class="slide-control-button fa-solid fa-circle"></button>
-          <button class="slide-control-button fa-solid fa-circle"></button>
-          <button class="slide-control-button fa-solid fa-circle"></button>
+          <button
+            class="slide-control-button fa-solid fa-circle"
+            data-slide="control-button"
+          ></button>
+          <button
+            class="slide-control-button fa-solid fa-circle"
+            data-slide="control-button"
+          ></button>
+          <button
+            class="slide-control-button fa-solid fa-circle"
+            data-slide="control-button"
+          ></button>
+          <button
+            class="slide-control-button fa-solid fa-circle"
+            data-slide="control-button"
+          ></button>
+          <button
+            class="slide-control-button fa-solid fa-circle"
+            data-slide="control-button"
+          ></button>
+          <button
+            class="slide-control-button fa-solid fa-circle"
+            data-slide="control-button"
+          ></button>
+          <button
+            class="slide-control-button fa-solid fa-circle"
+            data-slide="control-button"
+          ></button>
         </div>
       </div>
     </div>
