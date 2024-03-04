@@ -29,6 +29,7 @@ body{
 /* trabalhar primeiro com a lista para facilitar */
 .slide-list{
   display: flex;
+  transition: .6s ease-in-out ;
 }
 
 .slide-item{
@@ -100,7 +101,7 @@ box-shadow: #070707 0px 12px 12px;
 }
 
 .slide-control-button.active{
-  color: #1f2029;
+  color: #545983;
 }
 
 @media screen and (max-width: 768px) {

@@ -11,9 +11,6 @@ const controlsWrapper = document.querySelector(
   '[data-slide="controls-wrapper"]'
 );
 const slideItems = document.querySelectorAll('[data-slide="item"]');
-const controlButton = document.querySelectorAll(
-  '[data-slide="control-button"]'
-);
 
 // variavel que pegara o ponto inicial de onde o evento de click foi chamado, ela foi criada fora das funcoes para ter a possibilidade de usa-la e modifica-la em funcoes diferentes
 let startingPoint = 0;
@@ -36,6 +33,49 @@ const states = {
   currentSlideIndeex:0
 }
 */
+
+//funcao para fazer o translate e nao ficar repetindo muito codigo
+function translateSlide(position) {
+  slideList.style.transform = `translateX(${position}px)`;
+  savePosition = position;
+}
+//funcao resposavel por centralizar e ver a posicao do slide
+function getCenterPosition(index) {
+  //tamanho do item do slide
+  const slideItem = slideItems[index];
+  const slideWidth = slideItem.clientWidth;
+  /*
+      para centralizar o item a logica e o seguinte, pegar o tamanho da tela e o tamanho do slide
+      o que restar divide por 2 e aplica de margim dos dois lados  
+    */
+  const windowWidth = document.body.clientWidth;
+  const margin = (windowWidth - slideWidth) / 2;
+  const position = margin - index * slideWidth;
+  return position;
+}
+function setVisibleSlide(index) {
+  const position = getCenterPosition(index);
+  currentSlideIndex = index;
+  translateSlide(position);
+}
+function nextSlide() {
+  setVisibleSlide(currentSlideIndex + 1);
+}
+function previousSlide() {
+  setVisibleSlide(currentSlideIndex - 1);
+}
+//funcao responsavel por criar os botoes em baixo do slider
+function createControlsButtons() {
+  //criar os botoes de acordo com a quantidade de elemento na tela
+  slideItems.forEach(() => {
+    const controlButton = document.createElement("button");
+    controlButton.classList.add("slide-control-button");
+    controlButton.classList.add("fas");
+    controlButton.classList.add("fa-circle");
+    controlButton.setAttribute("data-slide", "control-button");
+    controlsWrapper.append(controlButton);
+  });
+}
 
 //funcao para o mousedown
 function onMouseDown(event, index) {
@@ -80,22 +120,14 @@ function onMouseUp() {
   /* pegar o tamanho do item depois verificar quantos px foi movido o item e assim passar o calculo para 
      o translate mudar o item do slide de lugar automaticamente, lembrando de salvar o valor de position no final
   */
-  //tamanho do item do slide
-  const slideWidth = slideItem.clientWidth;
 
   /* essa verificacao serve para ver se um determinado valor foi movimentado ao arrastar o mouse no item, tanto pra frente quanto para tras e caso nao tiver sido movido o suficiente ele continua no mesmo item */
   if (movement < -150) {
-    const position = (currentSlideIndex + 1) * slideWidth;
-    slideList.style.transform = "translateX(" + -position + "px)";
-    savePosition = -position;
+    nextSlide();
   } else if (movement > 150) {
-    const position = (currentSlideIndex - 1) * slideWidth;
-    slideList.style.transform = "translateX(" + -position + "px)";
-    savePosition = -position;
+    previousSlide();
   } else {
-    const position = currentSlideIndex * slideWidth;
-    slideList.style.transform = "translateX(" + -position + "px)";
-    savePosition = -position;
+    setVisibleSlide(currentSlideIndex);
   }
 
   /* para tirar o evento do mouse move assim que soltar o botao */
@@ -116,8 +148,7 @@ function onMouseMove() {
   volta ao inicio de tudo.
   propriedade style e para mexer diretamente com o css
   */
-  slideList.style.transform = "translateX(" + position + "px)";
-  savePosition = position;
+  translateSlide(position);
 }
 
 /* 
@@ -132,25 +163,53 @@ logica do slider
   (lembrando que o numero e negativo)
 
 */
+function onControlButtonClick(event, index, controlButtons) {
+  const controlButton = event.currentTarget;
+  controlButtons.forEach((controlButtonItem) => {
+    controlButtonItem.classList.remove("active");
+  });
+  controlButton.classList.add("active");
+  setVisibleSlide(index);
+}
+function setListeners() {
+  const controlButtons = document.querySelectorAll(
+    '[data-slide="control-button"]'
+  );
+  controlButtons.forEach((controlButton, index) => {
+    controlButton.addEventListener("click", (event) => {
+      onControlButtonClick(event, index, controlButtons);
+    });
+  });
+  /* primeiro fazer slide se movimentar com o mouse */
+  // percorrer todo os items do slide
+  slideItems.forEach((slideItem, index) => {
+    /*responsavel por cancelar o efeito padrao que acontece quando arrasta algum item */
+    slideItem.addEventListener("dragstart", (event) => {
+      event.preventDefault();
+    });
 
-/* primeiro fazer slide se movimentar com o mouse */
-// percorrer todo os items do slide
-slideItems.forEach((slideItem, index) => {
-  /*responsavel por cancelar o efeito padrao que acontece quando arrasta algum item */
-  slideItem.addEventListener("dragstart", (event) => {
-    event.preventDefault();
+    // lembrando que os eventos so vao funcionar nos itens
+    //  colocar um evento neles de mousedown que e quando se clica com o botao esquerdo do mouse
+    // nao e necessario passar o parametro event ao chamar a funcao, ele vem meio que padrao
+    //como chamar a funcao direto igual o exemplo a baixo nao da certo passar o parametro
+    // slideItem.addEventListener("mousedown", onMouseDown);
+    //e ,ais pratico criar uma funcao e chamar o onMouseDown dentro dessa funcao
+    slideItem.addEventListener("mousedown", (event) => {
+      onMouseDown(event, index);
+    });
+
+    // event para quando o botao for solto
+    slideItem.addEventListener("mouseup", onMouseUp);
   });
 
-  // lembrando que os eventos so vao funcionar nos itens
-  //  colocar um evento neles de mousedown que e quando se clica com o botao esquerdo do mouse
-  // nao e necessario passar o parametro event ao chamar a funcao, ele vem meio que padrao
-  //como chamar a funcao direto igual o exemplo a baixo nao da certo passar o parametro
-  // slideItem.addEventListener("mousedown", onMouseDown);
-  //e ,ais pratico criar uma funcao e chamar o onMouseDown dentro dessa funcao
-  slideItem.addEventListener("mousedown", (event) => {
-    onMouseDown(event, index);
-  });
+  navNextButton.addEventListener("click", nextSlide);
+  navPreviousButton.addEventListener("click", previousSlide);
+}
 
-  // event para quando o botao for solto
-  slideItem.addEventListener("mouseup", onMouseUp);
-});
+function initSlider() {
+  createControlsButtons();
+  setListeners();
+  setVisibleSlide(0);
+}
+
+initSlider();
