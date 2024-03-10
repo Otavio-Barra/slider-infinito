@@ -10,7 +10,12 @@ const navNextButton = document.querySelector('[data-slide="nav-next-button');
 const controlsWrapper = document.querySelector(
   '[data-slide="controls-wrapper"]'
 );
-const slideItems = document.querySelectorAll('[data-slide="item"]');
+let slideItems = document.querySelectorAll('[data-slide="item"]');
+
+let controlButtons;
+
+//variavel para controlar o slideAutoPlay
+let slideInterval;
 
 // variavel que pegara o ponto inicial de onde o evento de click foi chamado, ela foi criada fora das funcoes para ter a possibilidade de usa-la e modifica-la em funcoes diferentes
 let startingPoint = 0;
@@ -43,6 +48,7 @@ function translateSlide(position) {
 function getCenterPosition(index) {
   //tamanho do item do slide
   const slideItem = slideItems[index];
+  console.log(slideItem);
   const slideWidth = slideItem.clientWidth;
   /*
       para centralizar o item a logica e o seguinte, pegar o tamanho da tela e o tamanho do slide
@@ -53,16 +59,23 @@ function getCenterPosition(index) {
   const position = margin - index * slideWidth;
   return position;
 }
-function setVisibleSlide(index) {
+function setVisibleSlide(index, animate) {
+  //if que e responsavel por travar o primeiro e o ultimo slide para impedir bug caso o usuario passe rapido
+  if (index === 0 && index === slideItems.length - 1) {
+    index = currentSlideIndex;
+  }
   const position = getCenterPosition(index);
   currentSlideIndex = index;
+  //responsavel pela animacao ao mudar o item
+  slideList.style.transition = animate === true ? "transform .5s" : "none";
+  activeControlButton(index);
   translateSlide(position);
 }
 function nextSlide() {
-  setVisibleSlide(currentSlideIndex + 1);
+  setVisibleSlide(currentSlideIndex + 1, true);
 }
 function previousSlide() {
-  setVisibleSlide(currentSlideIndex - 1);
+  setVisibleSlide(currentSlideIndex - 1, true);
 }
 //funcao responsavel por criar os botoes em baixo do slider
 function createControlsButtons() {
@@ -77,6 +90,43 @@ function createControlsButtons() {
   });
 }
 
+function activeControlButton(index) {
+  //para evitar bug nos botoes de controle vamos pegar o item pelo seu index
+  const slideItem = slideItems[index];
+  const dataIndex = Number(slideItem.dataset.index);
+  const controlButton = controlButtons[dataIndex];
+  controlButtons.forEach((controlButtonItem) => {
+    controlButtonItem.classList.remove("active");
+  });
+  if (controlButton) controlButton.classList.add("active");
+}
+
+//funcao responsavel por criar os clones do inicio e do final do slide
+function createSlideCones() {
+  //ao inves de criar um novo elemento, copiamos ele usando o .cloneNode(true) *funcao a pesquisar depois*
+  const firstSlide = slideItems[0].cloneNode(true);
+  firstSlide.classList.add("slide-cloned");
+  firstSlide.dataset.index = slideItems.length;
+
+  const secondSlide = slideItems[1].cloneNode(true);
+  secondSlide.classList.add("slide-cloned");
+  secondSlide.dataset.index = slideItems.length + 1;
+
+  const lastSlide = slideItems[slideItems.length - 1].cloneNode(true);
+  lastSlide.classList.add("slide-cloned");
+  lastSlide.dataset.index = -1;
+
+  const penultimateSlide = slideItems[slideItems.length - 2].cloneNode(true);
+  penultimateSlide.classList.add("slide-cloned");
+  penultimateSlide.dataset.index = -2;
+
+  slideList.append(firstSlide);
+  slideList.append(secondSlide);
+  slideList.prepend(lastSlide);
+  slideList.prepend(penultimateSlide);
+
+  slideItems = document.querySelectorAll('[data-slide="item"]');
+}
 //funcao para o mousedown
 function onMouseDown(event, index) {
   // console.log("click");
@@ -96,7 +146,10 @@ function onMouseDown(event, index) {
 
   //pega o index atual do item
   currentSlideIndex = index;
-  console.log(currentSlideIndex);
+
+  //tirar o efeito do transition
+  slideList.style.transition = "none";
+
   // evento de mover o mouse em cima do item
   /* 
   outra logica a ser aplicada e o mouse move so funcionar quando o botao do mouse for clicado mas para isso temos que tirar um
@@ -107,8 +160,9 @@ function onMouseDown(event, index) {
 }
 
 //funcao para o mouseup
-function onMouseUp() {
-  // console.log("botao solto");
+function onMouseUp(event) {
+  //mudar a quantidade necessaria de px para mover no celular ou no pc
+  const pointsToMove = event.type.includes("touch") ? 50 : 150;
   /*
    o event nao precisa ser passado na hora de chamar a funcao, meio que ele ja pega "automatico", com isso ele pega o evento exato de onde o ouvinte foi clicado.
 
@@ -122,18 +176,17 @@ function onMouseUp() {
   */
 
   /* essa verificacao serve para ver se um determinado valor foi movimentado ao arrastar o mouse no item, tanto pra frente quanto para tras e caso nao tiver sido movido o suficiente ele continua no mesmo item */
-  if (movement < -150) {
+  if (movement < -pointsToMove) {
     nextSlide();
-  } else if (movement > 150) {
+  } else if (movement > pointsToMove) {
     previousSlide();
   } else {
-    setVisibleSlide(currentSlideIndex);
+    setVisibleSlide(currentSlideIndex, true);
   }
 
   /* para tirar o evento do mouse move assim que soltar o botao */
   slideItem.removeEventListener("mousemove", onMouseMove);
 }
-
 //funcao que vai no mousemove para evitar repeticao de codigo
 function onMouseMove() {
   //calcula quantos px o mouse andou do ponto que foi clicado ate quando o botao foi solto, e como o startingPoint esta fora da funcao ele ja foi atribuido com o valor da outra funcao (no caso aqui do mousedown)
@@ -150,6 +203,22 @@ function onMouseMove() {
   */
   translateSlide(position);
 }
+//funcionar o slider no celular
+function onTouchStart(event, index) {
+  event.clientX = event.touches[0].clientX;
+  onMouseDown(event, index);
+  const slideItem = event.currentTarget;
+  slideItem.addEventListener("touchmove", onTouchMove);
+}
+function onTouchMove(event) {
+  event.clientX = event.touches[0].clientX;
+  onMouseMove(event);
+}
+function onTouchEnd(event) {
+  onMouseUp(event);
+  const slideItem = event.currentTarget;
+  slideItem.addEventListener("touchmove", onTouchMove);
+}
 
 /* 
 
@@ -163,21 +232,36 @@ logica do slider
   (lembrando que o numero e negativo)
 
 */
-function onControlButtonClick(event, index, controlButtons) {
-  const controlButton = event.currentTarget;
-  controlButtons.forEach((controlButtonItem) => {
-    controlButtonItem.classList.remove("active");
-  });
-  controlButton.classList.add("active");
-  setVisibleSlide(index);
+function onControlButtonClick(index) {
+  setVisibleSlide(index + 2, true);
+}
+
+//responsave por fazer o efeito infinito
+function onSlideListTransitionEnd() {
+  const slideItem = slideItems[currentSlideIndex];
+  if (
+    slideItem.classList.contains("slide-cloned") &&
+    Number(slideItem.dataset.index) > 0
+  ) {
+    setVisibleSlide(2, false);
+  }
+  if (
+    slideItem.classList.contains("slide-cloned") &&
+    Number(slideItem.dataset.index) < 0
+  ) {
+    setVisibleSlide(slideItems.length - 3, false);
+  }
+}
+function setAutoPlay() {
+  slideInterval = setInterval(() => {
+    setVisibleSlide(currentSlideIndex + 1, true);
+  }, 4000);
 }
 function setListeners() {
-  const controlButtons = document.querySelectorAll(
-    '[data-slide="control-button"]'
-  );
+  controlButtons = document.querySelectorAll('[data-slide="control-button"]');
   controlButtons.forEach((controlButton, index) => {
     controlButton.addEventListener("click", (event) => {
-      onControlButtonClick(event, index, controlButtons);
+      onControlButtonClick(index);
     });
   });
   /* primeiro fazer slide se movimentar com o mouse */
@@ -200,16 +284,39 @@ function setListeners() {
 
     // event para quando o botao for solto
     slideItem.addEventListener("mouseup", onMouseUp);
+
+    //add evento para funcionar no touch do celular
+    slideItem.addEventListener("touchstart", (event) => {
+      onTouchStart(event, index);
+    });
+    slideItem.addEventListener("touchend", onTouchEnd);
   });
 
   navNextButton.addEventListener("click", nextSlide);
   navPreviousButton.addEventListener("click", previousSlide);
+  slideList.addEventListener("transitionend", onSlideListTransitionEnd);
+  //quando colocar o mouse em cima do slider ele para de rodar automaticamente, para isso pegamos o slider inteiro
+  slideWrapper.addEventListener("mouseenter", () => {
+    clearInterval(slideInterval);
+  });
+  slideWrapper.addEventListener("mouseleave", () => {
+    setAutoPlay();
+  });
+  let reziseTimeout;
+  window.addEventListener("rezise", () => {
+    clearTimeout(reziseTimeout);
+    reziseTimeout = setTimeout(() => {
+      setVisibleSlide(currentSlideIndex, true);
+    }, 1000);
+  });
 }
 
-function initSlider() {
+function initSlider(startAtIndex) {
   createControlsButtons();
+  createSlideCones();
   setListeners();
-  setVisibleSlide(0);
+  setVisibleSlide(startAtIndex + 2, true);
+  setAutoPlay();
 }
 
-initSlider();
+initSlider(0);
