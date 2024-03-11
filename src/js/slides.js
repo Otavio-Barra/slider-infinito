@@ -18,34 +18,36 @@ let controlButtons;
 let slideInterval;
 
 // variavel que pegara o ponto inicial de onde o evento de click foi chamado, ela foi criada fora das funcoes para ter a possibilidade de usa-la e modifica-la em funcoes diferentes
-let startingPoint = 0;
+// let startingPoint = 0;
 
 //essa variavel serve para guardar a quantidade de px que o mouse arrastou o slide e e usada para ao clicar no slide de novo ele nao voltar a posicao 0
-let savePosition = 0;
-let currentPosition = 0;
+// let savePosition = 0;
+// let currentPosition = 0;
 
-let movement = 0;
+// let movement = 0;
 
-let currentSlideIndex = 0;
+// let currentSlideIndex = 0;
 
 /*juntar todas elas em um obj fica mais declarativo e organizado
 exemplo
-const states = {
-  startingPoint: 0,
-  savePosition: 0,
-  currentPosition: 0,
-  movement:0,
-  currentSlideIndeex:0
-}
 */
+const state = {
+  startingPoint: 0,
+  savedPosition: 0,
+  currentPoint: 0,
+  movement: 0,
+  currentSlideIndex: 0,
+  autoPlay: true,
+  timeInterval: 0,
+};
 
 //funcao para fazer o translate e nao ficar repetindo muito codigo
-function translateSlide(position) {
+function translateSlide({ position }) {
+  state.savedPosition = position;
   slideList.style.transform = `translateX(${position}px)`;
-  savePosition = position;
 }
 //funcao resposavel por centralizar e ver a posicao do slide
-function getCenterPosition(index) {
+function getCenterPosition({ index }) {
   //tamanho do item do slide
   const slideItem = slideItems[index];
   console.log(slideItem);
@@ -59,23 +61,23 @@ function getCenterPosition(index) {
   const position = margin - index * slideWidth;
   return position;
 }
-function setVisibleSlide(index, animate) {
+function setVisibleSlide({ index, animate }) {
   //if que e responsavel por travar o primeiro e o ultimo slide para impedir bug caso o usuario passe rapido
   if (index === 0 && index === slideItems.length - 1) {
-    index = currentSlideIndex;
+    index = state.currentSlideIndex;
   }
-  const position = getCenterPosition(index);
-  currentSlideIndex = index;
+  const position = getCenterPosition({ index });
+  state.currentSlideIndex = index;
   //responsavel pela animacao ao mudar o item
   slideList.style.transition = animate === true ? "transform .5s" : "none";
-  activeControlButton(index);
-  translateSlide(position);
+  activeControlButton({ index });
+  translateSlide({ position: position });
 }
 function nextSlide() {
-  setVisibleSlide(currentSlideIndex + 1, true);
+  setVisibleSlide({ index: state.currentSlideIndex + 1, animate: true });
 }
 function previousSlide() {
-  setVisibleSlide(currentSlideIndex - 1, true);
+  setVisibleSlide({ index: state.currentSlideIndex - 1, animate: true });
 }
 //funcao responsavel por criar os botoes em baixo do slider
 function createControlsButtons() {
@@ -90,7 +92,7 @@ function createControlsButtons() {
   });
 }
 
-function activeControlButton(index) {
+function activeControlButton({ index }) {
   //para evitar bug nos botoes de controle vamos pegar o item pelo seu index
   const slideItem = slideItems[index];
   const dataIndex = Number(slideItem.dataset.index);
@@ -139,13 +141,13 @@ function onMouseDown(event, index) {
   // console.log(slideItem);
 
   // pega o pixel exato de onde o mousedown foi chamado e atribui a variavel startingPoint que esta foi da variavel
-  startingPoint = event.clientX;
+  state.startingPoint = event.clientX;
 
   //calcula a posicao atual do item
-  currentPosition = event.clientX - savePosition;
+  state.currentPoint = event.clientX - state.savedPosition;
 
   //pega o index atual do item
-  currentSlideIndex = index;
+  state.currentSlideIndex = index;
 
   //tirar o efeito do transition
   slideList.style.transition = "none";
@@ -176,22 +178,22 @@ function onMouseUp(event) {
   */
 
   /* essa verificacao serve para ver se um determinado valor foi movimentado ao arrastar o mouse no item, tanto pra frente quanto para tras e caso nao tiver sido movido o suficiente ele continua no mesmo item */
-  if (movement < -pointsToMove) {
+  if (state.movement < -pointsToMove) {
     nextSlide();
-  } else if (movement > pointsToMove) {
+  } else if (state.movement > pointsToMove) {
     previousSlide();
   } else {
-    setVisibleSlide(currentSlideIndex, true);
+    setVisibleSlide({ index: state.currentSlideIndex, animate: true });
   }
-
+  state.movement = 0;
   /* para tirar o evento do mouse move assim que soltar o botao */
   slideItem.removeEventListener("mousemove", onMouseMove);
 }
 //funcao que vai no mousemove para evitar repeticao de codigo
 function onMouseMove() {
   //calcula quantos px o mouse andou do ponto que foi clicado ate quando o botao foi solto, e como o startingPoint esta fora da funcao ele ja foi atribuido com o valor da outra funcao (no caso aqui do mousedown)
-  movement = event.clientX - startingPoint;
-  const position = event.clientX - currentPosition;
+  state.movement = event.clientX - state.startingPoint;
+  const position = event.clientX - state.currentPoint;
   // console.log(
   //   `px do mousemove: ${event.clientX} - ponto de partida: ${startingPoint} = ${movement}`
   // );
@@ -201,7 +203,7 @@ function onMouseMove() {
   volta ao inicio de tudo.
   propriedade style e para mexer diretamente com o css
   */
-  translateSlide(position);
+  translateSlide({ position });
 }
 //funcionar o slider no celular
 function onTouchStart(event, index) {
@@ -233,30 +235,32 @@ logica do slider
 
 */
 function onControlButtonClick(index) {
-  setVisibleSlide(index + 2, true);
+  setVisibleSlide({ index: index + 2, animate: true });
 }
 
 //responsave por fazer o efeito infinito
 function onSlideListTransitionEnd() {
-  const slideItem = slideItems[currentSlideIndex];
+  const slideItem = slideItems[state.currentSlideIndex];
   if (
     slideItem.classList.contains("slide-cloned") &&
     Number(slideItem.dataset.index) > 0
   ) {
-    setVisibleSlide(2, false);
+    setVisibleSlide({ index: 2, animate: false });
   }
   if (
     slideItem.classList.contains("slide-cloned") &&
     Number(slideItem.dataset.index) < 0
   ) {
-    setVisibleSlide(slideItems.length - 3, false);
+    setVisibleSlide({ index: slideItems.length - 3, animate: false });
   }
 }
+
 function setAutoPlay() {
   slideInterval = setInterval(() => {
-    setVisibleSlide(currentSlideIndex + 1, true);
-  }, 4000);
+    setVisibleSlide({ index: state.currentSlideIndex + 1, animate: true });
+  }, state.timeInterval);
 }
+
 function setListeners() {
   controlButtons = document.querySelectorAll('[data-slide="control-button"]');
   controlButtons.forEach((controlButton, index) => {
@@ -303,20 +307,30 @@ function setListeners() {
     setAutoPlay();
   });
   let reziseTimeout;
-  window.addEventListener("rezise", () => {
+  window.addEventListener("resize", () => {
     clearTimeout(reziseTimeout);
     reziseTimeout = setTimeout(() => {
-      setVisibleSlide(currentSlideIndex, true);
+      setVisibleSlide({ index: state.currentSlideIndex, animate: true });
     }, 1000);
   });
 }
 
-function initSlider(startAtIndex) {
+function initSlider({
+  startAtIndex = 0,
+  autoPlay = true,
+  timeInterval = 3000,
+}) {
+  state.autoPlay = autoPlay;
+  state.timeInterval = timeInterval;
   createControlsButtons();
   createSlideCones();
   setListeners();
-  setVisibleSlide(startAtIndex + 2, true);
+  setVisibleSlide({ index: startAtIndex + 2, animate: true });
   setAutoPlay();
 }
 
-initSlider(0);
+initSlider({
+  autoPlay: true,
+  startAtIndex: 0,
+  timeInterval: 2000,
+});
